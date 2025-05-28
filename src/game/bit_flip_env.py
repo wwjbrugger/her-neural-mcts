@@ -6,7 +6,7 @@ import random
 
 register(
     id="BitFlip",
-    entry_point="src.game.bit_flip_env:BitFlipEnv",
+    entry_point="src.HerNeuralMCTS.src.game.bit_flip_env:BitFlipEnv",
     max_episode_steps=50,
     kwargs={"num_bits": 50, "minimum_reward": -1, "maximum_reward": 0},
 )

@@ -5,28 +5,26 @@ To add new games to the pipeline, add your string_query-class constructor to the
 https://github.com/kaesve/muzero
 """
 
-import warnings
 import random
+import warnings
 from datetime import datetime
-from src.config import Config
-from src.coach import Coach
-from src.neural_nets.equation.equation_rule_predictor_skeleton import (
+
+import numpy as np
+import tensorflow as tf
+import wandb
+
+from definitions import ROOT_DIR
+from src.HerNeuralMCTS.src.coach import Coach
+from src.HerNeuralMCTS.src.config import Config
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.grammars import get_grammars
+from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
+from src.HerNeuralMCTS.src.game.gym_game import GymGame, make_env
+from src.HerNeuralMCTS.src.mcts.amex_mcts import AmEx_MCTS
+from src.HerNeuralMCTS.src.mcts.classic_mcts import ClassicMCTS
+from src.HerNeuralMCTS.src.neural_nets.equation.equation_rule_predictor_skeleton import (
     EquationRulePredictorSkeleton,
 )
-from src.neural_nets.bit_flip.bit_flip_predictor import BitFlipPredictor
-from src.neural_nets.point_maze.point_maze_predictor import PointMazePredictor
-from src.game.find_equation_game import FindEquationGame
-from src.game.gym_game import GymGame, make_env
-from src.mcts.classic_mcts import ClassicMCTS
-from src.mcts.amex_mcts import AmEx_MCTS
-import tensorflow as tf
-import numpy as np
-import wandb
-from definitions import ROOT_DIR
-
-from src.utils.copy_weights import copy_dataset_encoder_weights_from_pretrained_agent
-from src.utils.get_grammar import get_grammar_from_string
-from src.equation_modules.generate_datasets.grammars import get_grammars
+from src.HerNeuralMCTS.src.utils.get_grammar import get_grammar_from_string
 
 warnings.filterwarnings("ignore")
 
@@ -86,11 +84,6 @@ def learn_a0(game, args, run_name):
 
     # Extract neural network and algorithm arguments separately
     if args.game == "gym":
-        if args.gym_env_str.startswith("BitFlip"):
-            rule_predictor_train = BitFlipPredictor(game=game, args=args)
-        elif args.gym_env_str.startswith("PointMaze"):
-            rule_predictor_train = PointMazePredictor(game=game, args=args)
-        else:
             raise NotImplementedError
     else:  # equation
         rule_predictor_train = EquationRulePredictorSkeleton(
@@ -125,7 +118,7 @@ def load_pretrained_net(args, rule_predictor, game):
     experiment_name = f"{args.experiment_name}/{args.seed}"
     net = rule_predictor.net if args.game == "equation" else rule_predictor.net.model
     checkpoint_path_current_model = (
-        ROOT_DIR / "saved_models" / args.data_path / experiment_name
+        ROOT_DIR / "saved_models"  / experiment_name
     )
     print(f"Model will be saved at {checkpoint_path_current_model}")
 
@@ -162,10 +155,6 @@ def load_pretrained_net(args, rule_predictor, game):
         # checkpoint_current_model.restore(manager_train.latest_checkpoint)
         print("Initializing from scratch.")
 
-    copy_dataset_encoder_weights_from_pretrained_agent(
-        args=args, checkpoint_current_model=checkpoint_current_model, game=game
-    )
-
     return checkpoint_current_model, manager_train
 
 
@@ -180,7 +169,10 @@ def initialize_net(args, checkpoint_current_model, game):
         ]
         net(
             input_encoder_tree=prepared_syntax_tree,
-            input_encoder_measurement=[data_dict["data_frame"]],
+            input_encoder_measurement=[
+                data_dict["data_frame"].drop(labels=[args.system_id_column],
+                                             axis=1, inplace = False)
+            ],
         )
     else:
         pass

@@ -1,11 +1,11 @@
 import tensorflow as tf
-from src.utils.tensors import check_for_non_numeric_and_replace_by_0
-from src.utils.logging import get_log_obj
-from src.equation_modules.contrastive_loss.contrastive_loss import (
+from src.HerNeuralMCTS.src.utils.tensors import check_for_non_numeric_and_replace_by_0
+from src.HerNeuralMCTS.src.utils.logging import get_log_obj
+from src.HerNeuralMCTS.src.equation_modules.contrastive_loss.contrastive_loss import (
     prepare_for_contrastive_loss,
     postprocess_contrastive_loss,
 )
-from src.utils.tensors import tf_save_cast_to_float_32
+from src.HerNeuralMCTS.src.utils.tensors import tf_save_cast_to_float_32
 
 
 class EquationRulePredictorNet(tf.keras.Model):
@@ -41,6 +41,18 @@ class EquationRulePredictorNet(tf.keras.Model):
                 2 if self.args.class_measurement_encoder == "DatasetTransformer" else 1
             )
 
+    def map_to_one_hot(self, name):
+        one_hot_mapping = {
+            'PFOTS-Si-water': [1, 0, 0, 0],
+            '40-Glycerol-Teflon-Au': [0, 1, 0, 0],
+            '20-Glycerol-Teflon-Au': [0, 0, 1, 0],
+            '30-Glycerol-Teflon-Au': [0, 0, 0, 1],
+            'Fthiols_Au': [1, 0, 1, 0],
+            'Fthiols-Au': [0, 1, 0, 1],
+            'PFOTS-Si-water_drop': [1, 1, 1, 1],
+            'other': [0, 0, 0, 0]
+        }
+        return one_hot_mapping.get(name, one_hot_mapping['other'])
     @tf.function
     def __call__(self, input_encoder_tree, input_encoder_measurement):
         """
@@ -50,6 +62,12 @@ class EquationRulePredictorNet(tf.keras.Model):
         :return:
         """
         input_encoder_measurement_old = input_encoder_measurement
+
+        # input_encoder_measurement =[
+        #     frame.drop(labels=[self.args.system_id_column], axis=1, inplace = False)
+        #     for frame in input_encoder_measurement
+        # ]
+
         input_encoder_measurement = tf.convert_to_tensor(
             [
                 tf_save_cast_to_float_32(frame, self.logger_net, "convert measurements")

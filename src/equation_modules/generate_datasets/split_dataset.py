@@ -14,25 +14,22 @@ def move_data_to_testset(path_dataset):
     for file in files:
         if decision(probability_true=p_copy_data_to_testset):
             for approach in ["pandas"]:
-                src = path_dataset / "train" / approach / file
+                src_path= path_dataset / "train" / approach / file
                 dst = path_dataset / "test" / approach / file
                 dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(src, dst)
+                shutil.move(src_path, dst)
 
 
 def copy_info_file(path_dataset):
     p = path_dataset / "train"
     info_files = [x.name for x in p.glob("*") if x.is_file()]
     for info_file in info_files:
-        src = path_dataset / "train" / info_file
+        src_path= path_dataset / "train" / info_file
         dst = path_dataset / "test" / info_file
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(src, dst)
+        shutil.copy(src_path, dst)
 
 
 def decision(probability_true):
     return random.random() < probability_true
 
-
-if __name__ == "__main__":
-    run()

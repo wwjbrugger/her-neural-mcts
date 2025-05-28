@@ -1,7 +1,7 @@
-from src.equation_modules.syntax_tree.syntax_tree import SyntaxTree
+from src.SyntaxTree.src.syntax_tree.syntax_tree import SyntaxTree
 import copy
-from src.equation_modules.syntax_tree.state import State
-from src.utils.error import NonFiniteError
+from src.HerNeuralMCTS.src.equation_modules.syntax_tree.state import State
+from src.HerNeuralMCTS.src.utils.error import NonFiniteError
 
 
 def get_residual_of_equation(

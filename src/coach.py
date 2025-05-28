@@ -21,30 +21,30 @@ from moviepy import VideoFileClip, concatenate_videoclips
 import numpy as np
 from tqdm import trange
 
-from src.equation_modules.generate_datasets.dataset_generator import (
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator import (
     DatasetGenerator,
     constant_dict_to_string,
 )
-from src.equation_modules.preprocess_data.equation_preprocess_dummy import (
+from src.HerNeuralMCTS.src.equation_modules.preprocess_data.equation_preprocess_dummy import (
     get_dict_token_to_action,
     equation_to_action_sequence,
 )
-from src.game.find_equation_game import FindEquationGame
-from src.game.game_history import GameHistory, sample_batch
+from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
+from src.HerNeuralMCTS.src.game.game_history import GameHistory, sample_batch
 from datetime import datetime
 import tensorflow as tf
 import wandb
 
-from src.game.gym_game import (
+from src.HerNeuralMCTS.src.game.gym_game import (
     DiscreteActionWrapper,
     CustomRewardWrapper,
     reset_env_to_state,
     GymGameState,
 )
-from src.utils.logging import get_log_obj
-from src.utils.files import highest_number_in_files
+from src.HerNeuralMCTS.src.utils.logging import get_log_obj
+from src.HerNeuralMCTS.src.utils.files import highest_number_in_files
 from definitions import ROOT_DIR
-from src.hindsight.hindsight import Hindsight
+from src.HerNeuralMCTS.src.hindsight.hindsight import Hindsight
 
 
 def log_best_list(game, logger):
@@ -52,9 +52,9 @@ def log_best_list(game, logger):
     for i in range(len(game.max_list.max_list_state) - 1, -1, -1):
         logger.info(
             f"{i}: found equation: {game.max_list.max_list_state[i].complete_discovered_equation:<80}"
-            f" r={round(game.max_list.max_list_keys[i], 3)}"
+            f" r={game.max_list.max_list_keys[i]:.2E}"
         )
-        logger.info(game.max_list.max_list_state[i].syntax_tree.constants_in_tree)
+
 
 
 class Coach(ABC):
@@ -90,7 +90,7 @@ class Coach(ABC):
         # Initialize replay buffer and helper variable
         self.trainExamplesHistory = deque(
             maxlen=self.args.selfplay_buffer_window
-            * self.args.num_selfplay_episodes
+            * 100
             * (1 + self.args.hindsight_samples)
         )
 
@@ -245,7 +245,6 @@ class Coach(ABC):
 
         else:
             formula_started_from = None
-
         i = 0
         while not state.done:
             if (
@@ -256,7 +255,7 @@ class Coach(ABC):
                 # Compute the move probability vector and state value using MCTS for the current state of the environment.
                 pi, v = mcts.run_mcts(
                     state=state,
-                    num_mcts_sims=self.args.num_mcts_sims,
+                    num_mcts_sims=self.args.num_mcts_sims if i == 0 else 10,
                     temperature=temp,
                     depth=i,
                 )
@@ -350,23 +349,23 @@ class Coach(ABC):
                         f" Qsa: {round(mcts.Qsa[(initial_hash, i)], 2):<10}|"
                         f" #Ssa: {mcts.times_edge_s_a_was_visited[(initial_hash, i)]:<10}"
                     )
-        if mcts.states_explored_till_perfect_fit > 0:
-            wandb.log(
-                {
-                    f"num_states_to_perfect_fit_{mode}": mcts.states_explored_till_perfect_fit,
-                    f"num_states_to_perfect_fit_with_failed_{mode}": mcts.states_explored_till_perfect_fit,
-                    f"{next_state.observation['true_equation_hash']}"
-                    f"_num_states_to_perfect_fit_{mode}": mcts.states_explored_till_perfect_fit,
-                }
-            )
-        else:
-            wandb.log(
-                {
-                    f"equation_not_found_{next_state.observation['true_equation_hash']}_{mode}": 0,
-                    f"equation_not_found_{mode}": 0,
-                    f"num_states_to_perfect_fit_with_failed_{mode}": 1000,
-                }
-            )
+        # if mcts.states_explored_till_perfect_fit > 0:
+        #     wandb.log(
+        #         {
+        #             f"num_states_to_perfect_fit_{mode}": mcts.states_explored_till_perfect_fit,
+        #             f"num_states_to_perfect_fit_with_failed_{mode}": mcts.states_explored_till_perfect_fit,
+        #             f"{next_state.observation['true_equation_hash']}"
+        #             f"_num_states_to_perfect_fit_{mode}": mcts.states_explored_till_perfect_fit,
+        #         }
+        #     )
+        # else:
+        #     wandb.log(
+        #         {
+        #             f"equation_not_found_{next_state.observation['true_equation_hash']}_{mode}": 0,
+        #             f"equation_not_found_{mode}": 0,
+        #             f"num_states_to_perfect_fit_with_failed_{mode}": 1000,
+        #         }
+        #     )
 
     def get_temperature(self):
         """Helper function to calculate current MCTS temperature"""
@@ -419,55 +418,28 @@ class Coach(ABC):
         if self.args.load_pretrained:
             self.load_train_examples()
 
-        while self.checkpoint.step < self.args.num_iterations:
-            self.logger.info(
-                f"------------------ITER"
-                f" {int(self.checkpoint.step)}----------------"
+
+        self.logger.info(
+            f"------------------ITER"
+            f" {int(self.checkpoint.step)}----------------"
+        )
+        # Self-play/ Gather training data.
+        self.execute_one_iteration(
+            metrics=self.metrics_train,
+            mcts=self.mcts,
+            game=self.game,
+        )
+
+        if self.args.save_er:
+            self.save_train_examples(int(self.checkpoint.step))
+        if self.args.save_model:
+            save_path = self.checkpoint_manager.save(check_interval=True)
+            self.logger.debug(
+                f"Saved checkpoint for epoch {int(self.checkpoint.step)}: {save_path}"
             )
-            # Self-play/ Gather training data.
-            self.execute_one_iteration(
-                metrics=self.metrics_train,
-                mcts=self.mcts,
-                game=self.game,
-                num_selfplay_episodes=self.args.num_selfplay_episodes,
-            )
 
-            if self.args.save_er:
-                self.save_train_examples(int(self.checkpoint.step))
-            if self.args.save_model:
-                save_path = self.checkpoint_manager.save(check_interval=True)
-                self.logger.debug(
-                    f"Saved checkpoint for epoch {int(self.checkpoint.step)}: {save_path}"
-                )
-
-            test_now = self.checkpoint.step % self.args.test_frequency == 1
-
-            if test_now:
-                self.execute_one_iteration(
-                    metrics=self.metrics_test,
-                    mcts=self.mcts,
-                    game=self.game,
-                    num_selfplay_episodes=self.args.num_selfplay_episodes_test,
-                )
-
-            for m in [self.metrics_train, self.metrics_test]:
-                if m["mode"] == "train" or test_now:
-                    wandb.log(
-                        {
-                            f"iteration": self.checkpoint.step,
-                            f"reward_{m['mode']}": m["reward"].result(),
-                            f"return_{m['mode']}": m["return"].result(),
-                            f"solved_{m['mode']}": m["solved"].result(),
-                            f"states_to_perfect_{m['mode']}": m[
-                                "states_to_perfect"
-                            ].result(),
-                            f"states_to_perfect_with_failed_{m['mode']}": m[
-                                "states_to_perfect_with_failed"
-                            ].result(),
-                        }
-                    )
-
-            self.checkpoint.step.assign_add(1)
+        self.checkpoint.step.assign_add(1)
+        return
 
     def update_network(self):
         # Backpropagation
@@ -479,15 +451,8 @@ class Coach(ABC):
             pi_batch_loss, v_batch_loss, _ = self.rule_predictor.train(batch)
             pi_loss += pi_batch_loss
             v_loss += v_batch_loss
-        wandb.log(
-            {
-                f"iteration": self.checkpoint.step,
-                f"Pi loss": pi_loss / self.args.num_gradient_steps,
-                "V loss": v_loss / self.args.num_gradient_steps,
-            }
-        )
 
-    def execute_one_iteration(self, metrics, mcts, game, num_selfplay_episodes):
+    def execute_one_iteration(self, metrics, mcts, game):
         """
         Performs one iteration consisting of multiple self-play episodes(games), adds collected training samples to ER,
         updates performance metrics, optionally constructs HER samples and records episodes if possible.
@@ -496,115 +461,82 @@ class Coach(ABC):
         :param metrics: Performance data to monitor learning statistics.
         :param mcts: Class controlling MCTS.
         :param game: Game instance used.
-        :param num_selfplay_episodes: Number of episodes in one iteration.
         """
         metrics["reward"].reset_state()
         metrics["return"].reset_state()
         metrics["solved"].reset_state()
         metrics["states_to_perfect"].reset_state()
         metrics["states_to_perfect_with_failed"].reset_state()
+        mcts.clear_tree()
 
-        video_dir = os.getcwd() + "/video/"
-        video_paths = []
+        episode_history = self.execute_one_game(
+            game=game, mcts=mcts, mode=metrics["mode"]
+        )
 
-        for i in trange(
-            num_selfplay_episodes,
-            desc=(
-                "Playing episodes" if metrics["mode"] == "train" else "Testing episodes"
-            ),
-        ):
-            mcts.clear_tree()
-
-            episode_history = self.execute_one_game(
-                game=game, mcts=mcts, mode=metrics["mode"]
+        metrics["reward"].update_state(
+            game.max_list.max_list_state[-1].reward
+            if len(game.max_list.max_list_state) > 0
+            else -1
+        )
+        metrics["return"].update_state(episode_history.observed_returns[0])
+        metrics["solved"].update_state(
+            100 if self.episode_solved(episode_history) else 0
+        )
+        if episode_history.states_to_perfect > 0:
+            metrics["states_to_perfect"].update_state(
+                episode_history.states_to_perfect
             )
+            metrics["states_to_perfect_with_failed"].update_state(
+                episode_history.states_to_perfect
+            )
+        else:
+            metrics["states_to_perfect_with_failed"].update_state(1000)
 
-            metrics["reward"].update_state(
-                game.max_list.max_list_state[-1].reward
-                if len(game.max_list.max_list_state) > 0
-                else -1
-            )
-            metrics["return"].update_state(episode_history.observed_returns[0])
-            metrics["solved"].update_state(
-                100 if self.episode_solved(episode_history) else 0
-            )
-            if episode_history.states_to_perfect > 0:
-                metrics["states_to_perfect"].update_state(
-                    episode_history.states_to_perfect
+
+        if isinstance(game, FindEquationGame):
+            log_best_list(game, self.logger)
+
+        if metrics["mode"] == "train":
+            # add hindsight histories to ER
+            if self.args.hindsight_samples > 0:
+                hindsight = Hindsight(
+                    # utility options
+                    seed=self.args.seed,
+                    game=game,
+                    mcts=mcts,
+                    gamma=self.args.gamma,
+                    episode_history=episode_history,
+                    reward_noise=self.args.gym_reward_noise,
+                    logging_level=self.args.logging_level,
+                    # configuration
+                    num_samples=self.args.hindsight_samples,
+                    policy=self.args.hindsight_policy,
+                    goal_selection=self.args.hindsight_goal_selection,
+                    trajectory_selection=self.args.hindsight_trajectory_selection,
+                    num_trajectories=self.args.hindsight_num_trajectories,
+                    # advanced options
+                    aggressive_returns_lambda=self.args.hindsight_aggressive_returns_lambda,
+                    experience_ranking=self.args.hindsight_experience_ranking,
+                    experience_ranking_threshold=self.args.hindsight_experience_ranking_threshold,
+                    # other arguments
+                    args=self.args,
                 )
-                metrics["states_to_perfect_with_failed"].update_state(
-                    episode_history.states_to_perfect
+                self.trainExamplesHistory.extend(
+                    hindsight.create_hindsight_samples()
                 )
-            else:
-                metrics["states_to_perfect_with_failed"].update_state(1000)
 
-            # record episode video for better visualization
+            # add real history to ER (at the end to access last state transition easily)
+            self.trainExamplesHistory.append(episode_history)
+
             if (
-                self.args.point_maze_record_video
-                and self.args.game == "gym"
-                and self.args.gym_env_str.startswith("PointMaze")
+                self.args.training_after == "episode"
+                and self.checkpoint.step > self.args.cold_start_iterations
             ):
-                video_paths.append(
-                    self.record_game_video(
-                        video_dir, episode_history, i, metrics["mode"]
-                    )
-                )
+                self.update_network()
+        pass
+        return
 
-            if isinstance(game, FindEquationGame):
-                log_best_list(game, self.logger)
 
-            if metrics["mode"] == "train":
-                # add hindsight histories to ER
-                if self.args.hindsight_samples > 0:
-                    hindsight = Hindsight(
-                        # utility options
-                        seed=self.args.seed,
-                        game=game,
-                        mcts=mcts,
-                        gamma=self.args.gamma,
-                        episode_history=episode_history,
-                        reward_noise=self.args.gym_reward_noise,
-                        logging_level=self.args.logging_level,
-                        # configuration
-                        num_samples=self.args.hindsight_samples,
-                        policy=self.args.hindsight_policy,
-                        goal_selection=self.args.hindsight_goal_selection,
-                        trajectory_selection=self.args.hindsight_trajectory_selection,
-                        num_trajectories=self.args.hindsight_num_trajectories,
-                        # advanced options
-                        aggressive_returns_lambda=self.args.hindsight_aggressive_returns_lambda,
-                        experience_ranking=self.args.hindsight_experience_ranking,
-                        experience_ranking_threshold=self.args.hindsight_experience_ranking_threshold,
-                        # other arguments
-                        args=self.args,
-                    )
-                    self.trainExamplesHistory.extend(
-                        hindsight.create_hindsight_samples()
-                    )
-
-                # add real history to ER (at the end to access last state transition easily)
-                self.trainExamplesHistory.append(episode_history)
-
-                if (
-                    self.args.training_after == "episode"
-                    and self.checkpoint.step > self.args.cold_start_iterations
-                ):
-                    self.update_network()
-
-        if (
-            self.args.training_after == "iteration"
-            and metrics["mode"] == "train"
-            and self.checkpoint.step > self.args.cold_start_iterations
-        ):
-            self.update_network()
-
-        # save and upload a concatenation of all game videos from this iteration
-        if (
-            self.args.point_maze_record_video
-            and self.args.game == "gym"
-            and self.args.gym_env_str.startswith("PointMaze")
-        ):
-            self.save_iteration_video(video_dir, video_paths, metrics["mode"])
 
     def episode_solved(self, episode_history):
         """
@@ -625,7 +557,6 @@ class Coach(ABC):
         folder = (
             ROOT_DIR
             / "saved_models"
-            / self.args.data_path
             / str(self.args.experiment_name)
             / str(self.args.seed)
         )
@@ -658,7 +589,6 @@ class Coach(ABC):
             folder = (
                 ROOT_DIR
                 / "saved_models"
-                / self.args.data_path
                 / str(self.args.experiment_name)
                 / str(self.args.seed)
             )

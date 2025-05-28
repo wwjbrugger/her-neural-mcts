@@ -15,10 +15,10 @@ import copy
 import typing
 import numpy as np
 
-from src.game.find_equation_game import FindEquationGame
-from src.game.game import GameState
-from src.utils.logging import get_log_obj
-from src.utils.utils import tie_breaking_argmax
+from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
+from src.HerNeuralMCTS.src.game.game import GameState
+from src.HerNeuralMCTS.src.utils.logging import get_log_obj
+from src.HerNeuralMCTS.src.utils.utils import tie_breaking_argmax
 import random
 
 

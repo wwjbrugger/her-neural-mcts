@@ -4,10 +4,9 @@ import gymnasium as gym
 import gymnasium_robotics
 import numpy as np
 from pcfg import PCFG
-from src.utils.get_grammar import add_prior
-from src.game.game import Game, GameState
-from src.game.bit_flip_env import BitFlipEnv  # for gym.make
-from src.equation_modules.equation_classes.max_list import MaxList
+from src.HerNeuralMCTS.src.utils.get_grammar import add_prior
+from src.HerNeuralMCTS.src.game.game import Game, GameState
+from src.SyntaxTree.src.syntax_tree.max_list import MaxList
 
 
 class GymGameState(GameState):

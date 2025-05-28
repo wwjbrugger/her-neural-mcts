@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 import typing
 
 import numpy as np
-from src.game.game import GameState
-from src.equation_modules.syntax_tree.syntax_tree import SyntaxTree
+from src.HerNeuralMCTS.src.game.game import GameState
+from src.SyntaxTree.src.syntax_tree.syntax_tree import SyntaxTree
 
 
 @dataclass

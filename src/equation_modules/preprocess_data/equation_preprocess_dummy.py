@@ -1,7 +1,7 @@
 import tensorflow as tf
 from definitions import ROOT_DIR
 import numpy as np
-from src.equation_modules.generate_datasets.dataset_generator import (
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator import (
     get_all_symbols_usable,
 )
 

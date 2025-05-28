@@ -2,7 +2,7 @@ import time
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 import numpy as np
-from src.utils.parse_args import str2bool
+from src.HerNeuralMCTS.src.utils.parse_args import str2bool
 
 
 class Config:
@@ -78,12 +78,6 @@ class Config:
             default=0,
             help="Set which device to use (-1 for CPU). Equivalent "
             "to/overrides the CUDA_VISIBLE_DEVICES environment variable.",
-        )
-        parser.add_argument(
-            "--minimum_reward",
-            type=np.float32,
-            default=-1,
-            help="Set minimum reward.",
         )
         parser.add_argument(
             "--maximum_reward",
@@ -236,7 +230,7 @@ class Config:
             type=str,
             default="curated_equations",
             help="Which grammar should be used for the search. "
-            "Grammar can be defined in src/generate_datasets/grammars.py.",
+            "Grammar can be defined in src.HerNeuralMCTS.src/generate_datasets/grammars.py.",
         )
         parser.add_argument(
             "--grammar_for_generation",
@@ -312,6 +306,7 @@ class Config:
                 "EquationPreprocessDummy",
                 "PandasPreprocess",
                 "GenPandasPreprocess",
+                "PandasPreprocessDropFriction"
             ],
             help="Datasets can be represented in multiple ways."
             "EquationPreprocessDummy is an interface and if selected, the "

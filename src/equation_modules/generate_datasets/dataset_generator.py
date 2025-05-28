@@ -1,12 +1,13 @@
 import copy
 
-from src.equation_modules.generate_datasets.equation_generator import EquationGenerator
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.equation_generator import EquationGenerator
 from nltk.grammar import Nonterminal
 import numpy as np
 import pandas as pd
 import random
-from src.utils.error import NonFiniteError
-from src.equation_modules.syntax_tree.syntax_tree import SyntaxTree
+from src.SyntaxTree.src.syntax_tree.syntax_tree import SyntaxTree
+from src.HerNeuralMCTS.src.utils.error import NonFiniteError
+
 
 
 class DatasetGenerator:
@@ -146,7 +147,6 @@ class DatasetGenerator:
     def create_experiment_dataset(self, equation):
         """
         create dataset with experimental data
-        :param experiment_dataset_dic: Dict with information about the distribution of variables
         :return:
         """
         data_frame = self.generate_values_for_variables(equation=equation)
@@ -157,8 +157,6 @@ class DatasetGenerator:
     def generate_values_for_variables(self, equation):
         """
         sample values for variables
-        :param variables:
-        :param experiment_dataset_dic: Dict with information about the distribution of variables
         :return:
         """
         variables = self.grammar._leftcorner_words[Nonterminal("Variable")]
@@ -264,7 +262,6 @@ class DatasetGenerator:
         """
         evaluate created formula on sampled values
         :param data_frame:
-        :param str_representation:
         :return:
         """
         y_list = []
@@ -303,8 +300,6 @@ class DatasetGenerator:
         Prepare dict to save trees in a format  which include all outer nodes
         :param last_symbol:
         :param label:
-        :param dict_whole_tree_str:
-        :param num_sampled_rows: How many measurements per experiment should be done
         :return:
         """
         _, infix_notion = equation.rearrange_equation_infix_notation(
@@ -339,8 +334,9 @@ def get_all_symbols_usable(grammar):
 
 def constant_dict_to_string(new_equation):
     s = ""
-    for key, value in new_equation.constants_in_tree.items():
-        if key != "num_fitted_constants":
-            s += key
-            s += f"_{str(value['value'])}_"
+    if 'average' in new_equation.constants_in_tree:
+        for key, value in new_equation.constants_in_tree['average'].items():
+            if key != "num_fitted_constants":
+                s += key
+                s += f"_{str(value['value'])}_"
     return s

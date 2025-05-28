@@ -1,20 +1,22 @@
-from src.equation_modules.syntax_tree.syntax_tree import SyntaxTree
-from src.game.game import Game, GameState
+from src.HerNeuralMCTS.src.equation_modules.preprocess_data.PandasPreprocessDropFriction import PandasPreprocessDropFriction
+from src.SyntaxTree.src.syntax_tree.syntax_tree import SyntaxTree
+from src.HerNeuralMCTS.src.game.game import Game, GameState
 import typing
 import numpy as np
-from src.equation_modules.preprocess_data.pandas_preprocess import PandasPreprocess
-from src.equation_modules.preprocess_data.gen_pandas_preprocess import (
+from src.HerNeuralMCTS.src.equation_modules.preprocess_data.pandas_preprocess import PandasPreprocess
+from src.HerNeuralMCTS.src.equation_modules.preprocess_data.gen_pandas_preprocess import (
     GenPandasPreprocess,
 )
 from copy import deepcopy
-from src.utils.logging import get_log_obj
-from src.equation_modules.constant_fitting.contant_fitting import refit_all_constants
+from src.HerNeuralMCTS.src.utils.logging import get_log_obj
 import hashlib
 import math
-from src.game.rewards import Mse
-from src.utils.error import NonFiniteError
-from src.equation_modules.equation_classes.max_list import MaxList
+from src.HerNeuralMCTS.src.utils.error import NonFiniteError, NoSolutionFoundError
+from src.SyntaxTree.src.constant_fitting.contant_fitting import refit_all_constants
+from src.SyntaxTree.src.syntax_tree.max_list import MaxList
 import re
+
+from src.equation_discovery.evaluate_equation import evaluate_equation
 
 
 class FindEquationGame(Game):
@@ -34,6 +36,10 @@ class FindEquationGame(Game):
             self.reader = GenPandasPreprocess(
                 args=args, train_test_or_val=train_test_or_val, grammar=self.grammar
             )
+        elif self.args.equation_preprocess_class == "PandasPreprocessDropFriction":
+            self.reader = PandasPreprocessDropFriction(
+                args=args, grammar=self.grammar
+            )
         else:
             raise NotImplementedError(
                 f"Equation preprocess not defined: "
@@ -41,9 +47,9 @@ class FindEquationGame(Game):
             )
 
         # test on a fixed set of equations & datasets
-        self.reader_test = PandasPreprocess(
-            args=args, train_test_or_val="test", grammar=self.grammar
-        )
+        self.reader_test = PandasPreprocessDropFriction(
+                args=args, grammar=self.grammar
+            )
 
         self.iterator = self.reader.get_datasets()
         self.iterator_test = self.reader_test.get_datasets()
@@ -149,6 +155,7 @@ class FindEquationGame(Game):
         dataset = state.observation["data_frame"]
         syntax_tree = state.syntax_tree
         r = 0
+        state.syntax_tree.valid_for_hindsight = False
         if syntax_tree.max_depth_reached:
             self.logger.debug("done max depth")
             r = self.args.minimum_reward
@@ -166,37 +173,22 @@ class FindEquationGame(Game):
                 complete_syntax_tree, initial_dataset = refit_all_constants(
                     finished_state=state, args=self.args
                 )
+                output = evaluate_equation(self.args, complete_syntax_tree, initial_dataset)
                 syntax_tree.constants_in_tree = complete_syntax_tree.constants_in_tree
+
+                state.evaluation_dict = {'train': output}
                 state.complete_discovered_equation = (
                     syntax_tree.rearrange_equation_prefix_notation()[1]
                 )
-                y_calc = syntax_tree.evaluate_subtree(
-                    node_id=syntax_tree.start_node.node_id,
-                    dataset=dataset,
-                )
-                y_true = dataset.loc[:, "y"].to_numpy()
-                error = Mse(
-                    y_pred=y_calc, y_true=y_true
-                )  # ReMSe(y_pred=y_calc, y_true=y_true)
-                # returns error in the range -1 to 1
-                # r = 1 + np.maximum(
-                #     self.args.minimum_reward - 1, -error, dtype=np.float32
-                # )
-
-                r = (
-                    self.args.maximum_reward
-                    if error < 0.001
-                    else self.args.minimum_reward
-                )  # sparse reward
-
-                self.logger.debug(
-                    f"r = {r}  {syntax_tree.rearrange_equation_prefix_notation(new_start_node_id=-1)[1]} \n"
-                )
-
+                if not 'err_rel' in output: 
+                    raise NoSolutionFoundError
+                r = 1 + (- output['err_rel'] if - output['err_rel']
+                                                > self.args.minimum_reward else self.args.minimum_reward)
                 if math.isfinite(r):
-                    self.max_list.add(state=state, key=r)
+                    self.max_list.add(state=state, key=- output['error'])
                 else:
                     raise NonFiniteError
+                state.syntax_tree.valid_for_hindsight = True
 
             except AssertionError:
                 self.logger.debug(
@@ -220,10 +212,16 @@ class FindEquationGame(Game):
                 r = float(self.args.minimum_reward)
             except NonFiniteError as e:
                 r = float(self.args.minimum_reward)
+            except NoSolutionFoundError as e:
+                r = float(self.args.minimum_reward)
         return r
 
     def getHash(self, state):
-        data = np.ascontiguousarray(state.observation["data_frame"])
+        data = np.ascontiguousarray(state.observation["data_frame"].drop(
+            labels=[self.args.system_id_column],
+            axis=1,
+            inplace = False)
+        )
         hash1 = hashlib.md5(data).hexdigest()
         string_representation = (
             f"{state.syntax_tree.start_node.node_id}"

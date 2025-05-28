@@ -1,5 +1,5 @@
 from definitions import ROOT_DIR
-from src.equation_modules.generate_datasets.save_dataset import save_supervise_buffer
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.save_dataset import save_supervise_buffer
 from pathlib import Path
 
 

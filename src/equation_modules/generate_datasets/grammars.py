@@ -1,5 +1,20 @@
 def get_grammars(grammar_to_use):
-    if grammar_to_use == "1":
+    if grammar_to_use == "drop_friction":
+        grammar_string = """  
+                S -> '+' S S [0.1]
+                S -> '-' S S [0.1]
+                S -> '*' S S [0.1]
+                S -> '/' S S [0.1]
+                S -> '**' Variable '2'     [0.1]
+                S -> 'c'     [0.1]
+                S -> 'sin' I      [0.1] 
+                S -> 'cos' I      [0.1]
+                S -> 'log' I      [0.2]
+                I -> 'adv' [0.5] | 'rec'[0.5] 
+                Variable -> 'drop_length' [0.25]| 'y_center' [0.25]| 'avg_vel'[0.25]| 'width'[0.25] 
+                """
+
+    elif grammar_to_use == "1":
         grammar_string = """  
             S -> '+' S S [0.25]
             S -> '-' S S [0.05]

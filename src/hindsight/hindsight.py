@@ -1,14 +1,14 @@
 import random
 import numpy as np
-from src.game.find_equation_game import FindEquationGame
-from src.game.game_history import GameHistory
+from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
+from src.HerNeuralMCTS.src.game.game_history import GameHistory
 import copy
-from src.equation_modules.generate_datasets.dataset_generator import (
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator import (
     constant_dict_to_string,
     DatasetGenerator,
 )
-from src.game.gym_game import GymGame
-from src.utils.logging import get_log_obj
+from src.HerNeuralMCTS.src.game.gym_game import GymGame
+from src.HerNeuralMCTS.src.utils.logging import get_log_obj
 
 
 class Hindsight:
@@ -136,7 +136,7 @@ class Hindsight:
         elif self.trajectory_selection == "mcts_random":
             hindsight_histories = []
             # get terminal states from mcts tree
-            terminal_states = self.get_mcts_terminal_states()
+            terminal_states = get_mcts_terminal_states(self.mcts)
             # if possible, construct path to each of them from root
             trajectories = [
                 self.construct_trajectory_to_state(final_state=s)
@@ -486,26 +486,20 @@ class Hindsight:
         episode_history.terminated = True
         return episode_history
 
-    def get_mcts_terminal_states(self):
-        """
-        Returns a list of all terminal states in a search tree. For FindEquationGame
-        we have to make sure syntax trees are complete.
+def get_mcts_terminal_states(mcts):
+    """
+    Returns a list of all terminal states in a search tree. For FindEquationGame
+    we have to make sure syntax trees are complete.
 
-        :return: A list of all terminal states in a search tree.
-        """
-        if isinstance(self.game, FindEquationGame):
-            return [
-                self.mcts.Ssa[key]
-                for key in list(self.mcts.Ssa.keys())
-                if self.mcts.Ssa[key].syntax_tree.complete
-                # and self.mcts.Ssa[key].syntax_tree.constants_in_tree[
-                #     "num_fitted_constants"
-                # ]
-                # > 0
-            ]
-        else:
-            return [
-                self.mcts.Ssa[key]
-                for key in list(self.mcts.Ssa.keys())
-                if self.mcts.Ssa[key].done
-            ]
+    :return: A list of all terminal states in a search tree.
+    """
+
+    return [
+        mcts.Ssa[key]
+        for key in list(mcts.Ssa.keys())
+        if mcts.Ssa[key].syntax_tree.valid_for_hindsight
+        # and self.mcts.Ssa[key].syntax_tree.constants_in_tree[
+        #     "num_fitted_constants"
+        # ]
+        # > 0
+    ]

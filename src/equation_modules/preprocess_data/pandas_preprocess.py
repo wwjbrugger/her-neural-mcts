@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from definitions import ROOT_DIR
-from src.equation_modules.preprocess_data.equation_preprocess_dummy import (
+from src.HerNeuralMCTS.src.equation_modules.preprocess_data.equation_preprocess_dummy import (
     EquationPreprocessDummy,
 )
 

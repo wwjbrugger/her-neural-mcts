@@ -1,5 +1,5 @@
 import tensorflow as tf
-from src.neural_nets.equation.data_set_encoder.LSTM_measurement_encoder import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.LSTM_measurement_encoder import (
     LstmEncoder,
 )
 

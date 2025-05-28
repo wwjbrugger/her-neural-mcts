@@ -1,35 +1,35 @@
-from src.neural_nets.equation.equation_encoder.equation_encoder_dummy import (
+from src.HerNeuralMCTS.src.neural_nets.equation.equation_encoder.equation_encoder_dummy import (
     EquationEncoderDummy,
 )
-from src.neural_nets.equation.equation_encoder.transformer_encoder_string import (
+from src.HerNeuralMCTS.src.neural_nets.equation.equation_encoder.transformer_encoder_string import (
     TransformerEncoderString,
 )
 
-from src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
     MeasurementEncoderDummy,
 )
-from src.neural_nets.equation.data_set_encoder.mlp_encoder import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.mlp_encoder import (
     MlpMeasurementEncoder,
 )
-from src.neural_nets.equation.data_set_encoder.measurement_encoder_picture import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.measurement_encoder_picture import (
     MeasurementEncoderPicture,
 )
-from src.neural_nets.equation.data_set_encoder.LSTM_measurement_encoder import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.LSTM_measurement_encoder import (
     LstmEncoder,
 )
-from src.neural_nets.equation.data_set_encoder.bi_LSTM_measurement_encoder import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.bi_LSTM_measurement_encoder import (
     BiLSTMEncoder,
 )
-from src.neural_nets.equation.data_set_encoder.dataset_transformer import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.dataset_transformer import (
     DatasetTransformer,
 )
-from src.neural_nets.equation.data_set_encoder.text_transformer import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.text_transformer import (
     TextTransformer,
 )
 
-from src.neural_nets.equation.decoder.mlp_decoder import MLP_Decoder
+from src.HerNeuralMCTS.src.neural_nets.equation.decoder.mlp_decoder import MLP_Decoder
 
-from src.neural_nets.equation.equation_rule_predictor_net import (
+from src.HerNeuralMCTS.src.neural_nets.equation.equation_rule_predictor_net import (
     EquationRulePredictorNet,
 )
 

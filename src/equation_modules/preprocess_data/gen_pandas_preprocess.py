@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-from src.equation_modules.preprocess_data.equation_preprocess_dummy import (
+from src.HerNeuralMCTS.src.equation_modules.preprocess_data.equation_preprocess_dummy import (
     EquationPreprocessDummy,
 )
-from src.equation_modules.generate_datasets.grammars import get_grammars
-from src.equation_modules.generate_datasets.dataset_generator import DatasetGenerator
-from src.utils.get_grammar import get_grammar_from_string
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.grammars import get_grammars
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator import DatasetGenerator
+from src.HerNeuralMCTS.src.utils.get_grammar import get_grammar_from_string
 
 
 class GenPandasPreprocess(EquationPreprocessDummy):

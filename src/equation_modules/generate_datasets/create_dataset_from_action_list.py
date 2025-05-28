@@ -1,12 +1,12 @@
 from argparse import ArgumentParser
 import random
 import numpy as np
-from src.equation_modules.generate_datasets.save_dataset import save_panda_dataframes
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.save_dataset import save_panda_dataframes
 from pathlib import Path
-from src.utils.parse_args import str2bool
-from src.utils.files import create_file_path
-from src.equation_modules.generate_datasets.dataset_generator import DatasetGenerator
-from src.utils.get_grammar import get_grammar_from_string
+from src.HerNeuralMCTS.src.utils.parse_args import str2bool
+from src.HerNeuralMCTS.src.utils.files import create_file_path
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator import DatasetGenerator
+from src.HerNeuralMCTS.src.utils.get_grammar import get_grammar_from_string
 
 if __name__ == "__main__":
     parser = ArgumentParser()

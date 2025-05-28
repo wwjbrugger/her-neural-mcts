@@ -2,7 +2,7 @@ import warnings
 import sys
 import unittest
 
-from src.main import run
+from src.HerNeuralMCTS.src.main import run
 
 warnings.filterwarnings("ignore")
 
@@ -91,7 +91,7 @@ class TestA0(unittest.TestCase):
             " --num_iterations 100"
             " --max_num_nodes_in_syntax_tree 25"
             " --seed 1"
-            " --wandb online"
+            " --wandb disabled"
             " --logging_level 20"
             " --num_selfplay_episodes 50"
             " --num_selfplay_episodes_test 50"

@@ -1,10 +1,10 @@
 import tensorflow as tf
 from itertools import cycle
-from src.neural_nets.equation.data_set_encoder.dataset_modules import MHSA
-from src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.dataset_modules import MHSA
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
     MeasurementEncoderDummy,
 )
-from src.neural_nets.equation.data_set_encoder.reshape import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.reshape import (
     ReshapeToFlat,
     ReshapeToNested,
 )

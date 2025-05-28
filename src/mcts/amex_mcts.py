@@ -14,10 +14,10 @@ Notes:
 import typing
 import numpy as np
 
-from src.game.find_equation_game import FindEquationGame
-from src.game.game import GameState
-from src.utils.utils import tie_breaking_argmax
-from src.mcts.classic_mcts import ClassicMCTS
+from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
+from src.HerNeuralMCTS.src.game.game import GameState
+from src.HerNeuralMCTS.src.utils.utils import tie_breaking_argmax
+from src.HerNeuralMCTS.src.mcts.classic_mcts import ClassicMCTS
 
 
 class AmEx_MCTS(ClassicMCTS):
@@ -84,6 +84,8 @@ class AmEx_MCTS(ClassicMCTS):
                 )
             )
         for num_sim in range(num_mcts_sims):
+            if num_sim % 1000 == 100:
+                self.game.logger.info(f"{num_sim} simulation from {num_mcts_sims} done")
             if not_completely_explored:
                 mct_return, not_completely_explored = self._search(
                     state=state, depth=depth

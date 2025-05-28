@@ -1,7 +1,6 @@
-from src.equation_modules.syntax_tree.syntax_tree import SyntaxTree
 import random
 from nltk.grammar import Nonterminal
-
+from src.SyntaxTree.src.syntax_tree.syntax_tree import SyntaxTree
 
 class EquationGenerator:
     def __init__(self, grammar, args):

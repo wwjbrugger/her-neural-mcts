@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
     MeasurementEncoderDummy,
 )
 

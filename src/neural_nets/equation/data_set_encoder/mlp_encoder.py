@@ -1,5 +1,5 @@
 import tensorflow as tf
-from src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
+from src.HerNeuralMCTS.src.neural_nets.equation.data_set_encoder.measurement_encoder_dummy import (
     MeasurementEncoderDummy,
 )
 

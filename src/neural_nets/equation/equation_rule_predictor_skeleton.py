@@ -1,16 +1,16 @@
 import pandas as pd
 import tensorflow as tf
 import typing
-from src.neural_nets.equation.get_rule_predictor_class import (
+from src.HerNeuralMCTS.src.neural_nets.equation.get_rule_predictor_class import (
     get_rule_predictor_equation,
 )
 import numpy as np
-import src.neural_nets.loss as loss
-from src.utils.tensors import expand_tensor_to_same_size
-from src.utils.logging import get_log_obj
-from src.utils.tensors import check_for_non_numeric_and_replace_by_0
-from src.utils.tensors import tf_save_cast_to_float_32
-from src.neural_nets.loss import NT_Xent
+import src.HerNeuralMCTS.src.neural_nets.loss as loss
+from src.HerNeuralMCTS.src.utils.tensors import expand_tensor_to_same_size
+from src.HerNeuralMCTS.src.utils.logging import get_log_obj
+from src.HerNeuralMCTS.src.utils.tensors import check_for_non_numeric_and_replace_by_0
+from src.HerNeuralMCTS.src.utils.tensors import tf_save_cast_to_float_32
+from src.HerNeuralMCTS.src.neural_nets.loss import NT_Xent
 
 
 class EquationRulePredictorSkeleton(tf.keras.Model):
@@ -73,7 +73,7 @@ class EquationRulePredictorSkeleton(tf.keras.Model):
         )
         return target_dataset_encoding
 
-    def prepare_batch_for_NN(self, examples):
+    def  prepare_batch_for_NN(self, examples):
         observations, loss_scale, target_pis, target_vs = [], [], [], []
         for example in examples:
             observations.append(example["observation"])
@@ -86,7 +86,9 @@ class EquationRulePredictorSkeleton(tf.keras.Model):
         ]
 
         measurement_representation_list = [
-            observation["data_frame"] for observation in observations
+            observation["data_frame"].drop(
+                labels=[self.args.system_id_column],
+                axis=1, inplace = False) for observation in observations
         ]
         target_pis = tf_save_cast_to_float_32(
             x=target_pis, logger=self.logger, name="target_pis"
@@ -127,7 +129,6 @@ class EquationRulePredictorSkeleton(tf.keras.Model):
 
             pi_batch_loss = loss.kl_divergence(real=target_pis, pred=action_prediction)
             v_batch_loss = loss.mean_square_error_loss_function(real=target_vs, pred=v)
-        if self.args.path_to_pretrained_dataset_encoder is None:
             variables_encoder_measurements = [
                 resourceVariable
                 for resourceVariable in self.net.encoder_measurement.trainable_variables
@@ -210,7 +211,7 @@ class EquationRulePredictorSkeleton(tf.keras.Model):
         target_dataset_encoding = self.get_target_dataset_encoding(examples)
         action_prediction, v, encoding_measurement, split_measurement = self.net(
             input_encoder_tree=tree_representation,
-            input_encoder_measurement=measurement_representation,
+            input_encoder_measurement=measurement_representation
         )
         if with_loss:
             pi_batch_loss = loss.kl_divergence(real=target_pis, pred=action_prediction)

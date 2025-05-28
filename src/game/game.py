@@ -23,7 +23,7 @@ class GameState:
         syntax_tree,
         observation,
         done=False,
-        hash=None,
+        hash_value=None,
         production_action=None,
         previous_state=None,
         residual_calculated=False,
@@ -32,10 +32,11 @@ class GameState:
         self.observation = observation
         self.done = done
         self.y_calc = None
-        self.hash = hash
+        self.hash = hash_value
         self.production_action = production_action
         self.previous_state = previous_state
         self.residual_calculated = residual_calculated
+        self.evaluation_dict = None
 
     def __str__(self):
         return self.hash

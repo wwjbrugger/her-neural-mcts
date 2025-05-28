@@ -1,12 +1,12 @@
 from pathlib import Path
-from src.game.game_history import GameHistory
-from src.game.find_equation_game import FindEquationGame
+from src.HerNeuralMCTS.src.game.game_history import GameHistory
+from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
 import numpy as np
 import os
 from pickle import Pickler, HIGHEST_PROTOCOL
 from collections import deque
-from src.utils.get_grammar import get_grammar_from_string
-from src.equation_modules.generate_datasets.grammars import get_grammars
+from src.HerNeuralMCTS.src.utils.get_grammar import get_grammar_from_string
+from src.HerNeuralMCTS.src.equation_modules.generate_datasets.grammars import get_grammars
 
 
 def save_panda_dataframes(save_folder, dict_measurements, approach, args):
