@@ -14,9 +14,6 @@ import os
 from pickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 from collections import deque
 from abc import ABC
-import gymnasium as gym
-from gymnasium.wrappers import RecordVideo
-from moviepy import VideoFileClip, concatenate_videoclips
 
 import numpy as np
 from tqdm import trange
@@ -34,13 +31,6 @@ from src.HerNeuralMCTS.src.game.game_history import GameHistory, sample_batch
 from datetime import datetime
 import tensorflow as tf
 import wandb
-
-from src.HerNeuralMCTS.src.game.gym_game import (
-    DiscreteActionWrapper,
-    CustomRewardWrapper,
-    reset_env_to_state,
-    GymGameState,
-)
 from src.HerNeuralMCTS.src.utils.logging import get_log_obj
 from src.HerNeuralMCTS.src.utils.files import highest_number_in_files
 from definitions import ROOT_DIR
@@ -602,67 +592,6 @@ class Coach(ABC):
             else:
                 self.logger.info(f"No replay buffer found. Use empty one.")
 
-    def record_game_video(self, video_dir, episode_history, idx, mode):
-        """
-        Records episode video and saves it in specified directory
-
-        :param video_dir: Directory used for recording
-        Also required for selecting filenames:
-        :param episode_history: Episode history, used for setting solved/unsolved labels
-        :param idx: Index of current episode in iteration
-        :param mode: Testing or training
-        """
-        video_prefix = (
-            f"{'solved' if self.episode_solved(episode_history) else 'unsolved'}"
-            f"_iter{int(self.checkpoint.step)}_{mode}_game{idx}"
-        )
-        video_env = CustomRewardWrapper(
-            DiscreteActionWrapper(
-                RecordVideo(
-                    env=gym.make(
-                        "PointMaze_Medium-v3",
-                        reward_type="sparse",
-                        continuing_task=False,
-                        reset_target=False,
-                        max_episode_steps=self.args.gym_max_episode_steps,
-                        render_mode="rgb_array",
-                    ),
-                    video_folder=video_dir,
-                    name_prefix=video_prefix,
-                    episode_trigger=lambda x: True,
-                )
-            ),
-            minimum_reward=self.args.minimum_reward,
-            maximum_reward=self.args.maximum_reward,
-        )
-        # reset env to starting state and execute chosen actions
-        reset_env_to_state(
-            video_env,
-            GymGameState(None, episode_history.observations[0]),
-            0,
-        )
-        for j in range(len(episode_history.actions)):
-            action = episode_history.actions[j]
-            obs, reward, terminated, truncated, _ = video_env.step(action)
-            video_env.render()
-            if terminated or truncated:
-                break
-        video_env.close()
-        # return video path
-        return f"{video_dir}{video_prefix}-episode-0.mp4"
-
-    def save_iteration_video(self, video_dir, video_paths, mode):
-        """
-        Combines episode videos recorded during this iteration into one file and logs it to wandb
-
-        :param video_dir: Directory used for recording
-        :param video_paths: Paths to recorded files
-        :param mode: Testing or training. Used to choose filename
-        """
-        iter_video = concatenate_videoclips([VideoFileClip(p) for p in video_paths])
-        iter_video_path = f"{video_dir}iter{int(self.checkpoint.step)}_{mode}.mp4"
-        iter_video.write_videofile(iter_video_path)
-        wandb.log({"video": wandb.Video(iter_video_path, format="mp4")})
 
     def get_supervised_action(self, iteration, state):
         if self.args.grammar_for_generation == self.args.grammar_search:

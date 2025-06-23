@@ -7,7 +7,6 @@ from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator 
     constant_dict_to_string,
     DatasetGenerator,
 )
-from src.HerNeuralMCTS.src.game.gym_game import GymGame
 from src.HerNeuralMCTS.src.utils.logging import get_log_obj
 
 
@@ -249,16 +248,6 @@ class Hindsight:
             possible_goals = [indexed_observations[-1]]
         else:
             raise NotImplementedError()
-
-        # skip goals too far away from original if needed
-        if self.experience_ranking:
-            possible_goals = [
-                g
-                for g in possible_goals
-                if self.compute_distance_to_original_goal(virtual_goal_observation=g[1])
-                <= self.experience_ranking_threshold
-            ]
-
         # sample
         if len(possible_goals) > 0:
             return zip(
@@ -288,26 +277,10 @@ class Hindsight:
         # for each future episode observation until virtual goal
         for j in range(observation_index, goal_index):
             # compute and save new reward
-            if isinstance(self.game, FindEquationGame):
-                hindsight_rewards.append(
-                    self.game.args.maximum_reward if j + 1 == goal_index else 0
-                )
-            else:
-                hindsight_rewards.append(
-                    self.get_reward_with_goal(
-                        # current reward is calculated using next observation -> j + 1
-                        observation=episode_observations[j + 1],
-                        goal_observation=goal_observation,
-                    )
-                )
-                # stop if goal is already reached
-                if hindsight_rewards[-1] == self.game.args.maximum_reward:
-                    break
-                else:
-                    # add random noise to reward if needed
-                    hindsight_rewards[-1] += (
-                        self.random.random() - 0.5
-                    ) * self.reward_noise
+
+            hindsight_rewards.append(
+                self.game.args.maximum_reward if j + 1 == goal_index else 0
+            )
         # calculate total return for state (and multiply by lambda if aggressive rewards are used)
         return (
             sum(
@@ -372,52 +345,9 @@ class Hindsight:
                     "y calculation failed: " + getattr(e, "message", repr(e))
                 )
                 return None  # invalid value in y calculation
-        elif isinstance(self.game, GymGame):
-            relabeled_observation["obs"]["desired_goal"] = hindsight_goal_observation[
-                "obs"
-            ]["achieved_goal"]
-            return relabeled_observation
         else:
             raise NotImplementedError()
 
-    def get_reward_with_goal(self, observation, goal_observation=None):
-        """
-        Gets a reward signal for current observation (with hindsight goal) from the environment.
-
-        :param observation: Current observation
-        :param goal_observation: Goal observation
-        :return: Game reward for current observation with specified goal.
-        """
-        if isinstance(self.game, GymGame):
-            reward = self.game.env.unwrapped.compute_reward(
-                observation["obs"]["achieved_goal"],
-                goal_observation["obs"]["achieved_goal"],
-                {},
-            )
-            if self.game.env.spec.id.startswith("PointMaze"):
-                # NegativeRewardWrapper is not applied here,
-                # so we need -1 for binary negative rewards
-                return reward - 1
-            else:
-                return reward
-        else:
-            raise NotImplementedError()
-
-    def compute_distance_to_original_goal(self, virtual_goal_observation):
-        """
-        Calculates a measure of distance between virtual and real goals. Implementation details are
-        environment-specific.
-
-        :param virtual_goal_observation: Virtual goal observation
-        :return: Distance between virtual and real goals.
-        """
-        if isinstance(self.game, GymGame):
-            return np.linalg.norm(
-                virtual_goal_observation["obs"]["achieved_goal"]
-                - virtual_goal_observation["obs"]["desired_goal"]
-            )
-        else:
-            raise NotImplementedError()
 
     def get_one_hot_policy(self, episode_actions, index):
         """

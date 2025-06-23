@@ -18,7 +18,6 @@ from src.HerNeuralMCTS.src.coach import Coach
 from src.HerNeuralMCTS.src.config import Config
 from src.HerNeuralMCTS.src.equation_modules.generate_datasets.grammars import get_grammars
 from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
-from src.HerNeuralMCTS.src.game.gym_game import GymGame, make_env
 from src.HerNeuralMCTS.src.mcts.amex_mcts import AmEx_MCTS
 from src.HerNeuralMCTS.src.mcts.classic_mcts import ClassicMCTS
 from src.HerNeuralMCTS.src.neural_nets.equation.equation_rule_predictor_skeleton import (
@@ -55,18 +54,7 @@ def run():
         string=get_grammars(args.grammar_search), args=args
     )
 
-    if args.game == "gym":
-        game = GymGame(
-            args,
-            make_env(
-                env_str=args.gym_env_str,
-                max_episode_steps=args.gym_max_episode_steps,
-                minimum_reward=args.minimum_reward,
-                maximum_reward=args.maximum_reward,
-            ),
-        )
-    else:  # equation
-        game = FindEquationGame(grammar, args, train_test_or_val="train")
+    game = FindEquationGame(grammar, args, train_test_or_val="train")
 
     learn_a0(game=game, args=args, run_name=args.experiment_name)
     wandb.log({f"successful": True})
