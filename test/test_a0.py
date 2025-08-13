@@ -105,7 +105,7 @@ class TestA0(unittest.TestCase):
             " --num_gradient_steps 20"
             " --cold_start_iterations 1"
             " --equation_preprocess_class GenPandasPreprocess"
-            " --max_len_datasets 100"
+            " --num_rows_for_ed 100"
             " --class_equation_encoder Transformer_Encoder_String"
             " --embedding_dim_encoder_equation 8"
             " --max_tokens_equation 64"

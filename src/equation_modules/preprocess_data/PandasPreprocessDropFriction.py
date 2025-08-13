@@ -74,7 +74,7 @@ class PandasIterator:
 
     def __next__(self):
         shorten_data = self.df.sample(
-            n=min(self.df.shape[0], self.args.max_len_datasets)
+            n=min(self.df.shape[0], self.args.num_rows_for_ed)
         )
         return {
             "infix_formula": 'Unknown',

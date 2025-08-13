@@ -7,7 +7,7 @@ def save_buffer_for_supervised_learning(args, save_path, dic_measurements):
     args.data_path = f"{save_path.parent.name}/{save_path.name}"
     args.prior_source = "None"
     args.max_elements_in_best_list = 1
-    args.max_len_datasets = 2
+    args.num_rows_for_ed = 2
     args.max_tokens_equation = 64
     args.minimum_reward = -1
     args.selfplay_buffer_window = 10000

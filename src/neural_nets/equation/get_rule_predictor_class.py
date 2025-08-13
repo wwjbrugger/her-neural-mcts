@@ -134,7 +134,7 @@ def get_rule_predictor_equation(args, reader_data):
             "use_latent_vector": args.dataset_transformer_use_latent_vector,
             "bit_embedding": args.bit_embedding_dataset_transformer,
             "use_feature_index_embedding": args.use_feature_index_embedding_dataset_transformer,
-            "max_len_datasets": args.max_len_datasets,
+            "num_rows_for_ed": args.num_rows_for_ed,
             # ------ TextTransformer
             "float_precision": args.float_precision_text_transformer,
             "mantissa_len": args.mantissa_len_text_transformer,

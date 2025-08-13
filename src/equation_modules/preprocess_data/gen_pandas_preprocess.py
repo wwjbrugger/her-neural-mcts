@@ -134,7 +134,7 @@ class GenPandasIterator:
             columns=dict_variable_names_to_xi, inplace=True
         )
         shorten_data = dic_measurements[0]["df"].sample(
-            n=min(dic_measurements[0]["df"].shape[0], self.args.max_len_datasets)
+            n=min(dic_measurements[0]["df"].shape[0], self.args.num_rows_for_ed)
         )
         return {
             "infix_formula": dic_measurements[0]["infix_formula"],

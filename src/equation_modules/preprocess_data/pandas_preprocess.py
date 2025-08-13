@@ -107,7 +107,7 @@ class PandasIterator:
             input_data.insert(i + num_given_variables, x_i, np.float32(0))
         input_data.rename(columns=dict_variable_names_to_xi, inplace=True)
         shorten_data = input_data.sample(
-            n=min(input_data.shape[0], self.args.max_len_datasets)
+            n=min(input_data.shape[0], self.args.num_rows_for_ed)
         )
         return {
             "infix_formula": path.stem,

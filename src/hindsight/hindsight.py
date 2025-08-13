@@ -86,13 +86,13 @@ class Hindsight:
                 grammar=self.game.grammar,
                 args=self.args,
                 experiment_dataset_dic={
-                    "num_calls_sampling": self.args.max_len_datasets,
+                    "num_calls_sampling": self.args.num_rows_for_ed,
                     "x_0": {
                         "distribution": np.random.uniform,
                         "distribution_args": {
                             "low": -5,
                             "high": 5,
-                            "size": self.args.max_len_datasets,
+                            "size": self.args.num_rows_for_ed,
                         },
                         "min_variable_range": 2,
                         "generate_all_values_with_one_call": True,
@@ -104,7 +104,7 @@ class Hindsight:
                         "distribution_args": {
                             "low": -5,
                             "high": 5,
-                            "size": self.args.max_len_datasets,
+                            "size": self.args.num_rows_for_ed,
                         },
                         "min_variable_range": 2,
                         "generate_all_values_with_one_call": True,

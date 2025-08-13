@@ -115,7 +115,7 @@ class EquationRulePredictorNet(tf.keras.Model):
         )
 
     def scale_measurements(self, tensor):
-        max_elements = tf.minimum(tf.shape(tensor)[0], self.args.max_len_datasets)
+        max_elements = tf.minimum(tf.shape(tensor)[0], self.args.num_rows_for_ed)
         index = tf.random.shuffle(tf.range(tf.shape(tensor)[0]))[:max_elements]
         tensor_random = tf.gather(tensor, indices=index, axis=0)
         if not (self.norm_lin_transform or self.norm_abs_max_y):
