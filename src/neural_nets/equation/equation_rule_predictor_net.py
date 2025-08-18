@@ -105,11 +105,11 @@ class EquationRulePredictorNet(tf.keras.Model):
         encoding_tree = self.encoder_tree(x=input_encoder_tree, training=self.training)
         output_encoder = tf.concat([encoding_tree, encoding_measurement], axis=1)
 
-        action_uncliped = self.actor(x=output_encoder, training=self.training)
-        critic_uncliped = self.critic(x=output_encoder, training=self.training)
+        action_clipped = self.actor(x=output_encoder, training=self.training)
+        critic_clipped = self.critic(x=output_encoder, training=self.training)
         return (
-            action_uncliped,
-            critic_uncliped,
+            action_clipped,
+            critic_clipped,
             encoding_measurement_contrastive,
             input_encoder_measurement,
         )

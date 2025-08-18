@@ -1,3 +1,5 @@
+from urllib.parse import splittag
+
 import tensorflow as tf
 
 
@@ -11,13 +13,13 @@ def prepare_for_contrastive_loss(input_encoder_measurement, axis_to_split):
     :return:
     """
     list_with_datasets = tf.unstack(input_encoder_measurement)
-    splited_tensors = []
+    split_tensors = []
     for tensor in list_with_datasets:
         t_ = sorted_split(tensor)
 
         # t_ = random_split(axis_to_split, tensor)
-        splited_tensors.append(t_)
-    input_encoder_measurement_contrastive_loss = tf.concat(splited_tensors, axis=0)
+        split_tensors.append(t_)
+    input_encoder_measurement_contrastive_loss = tf.concat(split_tensors, axis=0)
 
     # old_shape = input_encoder_measurement.shape
     # new_shape = np.array(old_shape)

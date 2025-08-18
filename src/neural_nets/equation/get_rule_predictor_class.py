@@ -109,7 +109,7 @@ def get_rule_predictor_equation(args, reader_data):
         encoder_measurement_class=encoder_measurement_class,
         encoder_measurement_args={
             "normalize_approach": args.normalize_approach,
-            # LSTMS
+            # LSTMs
             "encoder_measurements_LSTM_units": args.encoder_measurements_LSTM_units,
             "encoder_measurements_LSTM_return_sequence": args.encoder_measurements_LSTM_return_sequence,
             "encoder_measurement_num_layer": args.encoder_measurement_num_layer,

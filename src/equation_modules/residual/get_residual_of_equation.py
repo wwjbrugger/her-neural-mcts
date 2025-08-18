@@ -7,10 +7,6 @@ from src.HerNeuralMCTS.src.utils.error import NonFiniteError
 def get_residual_of_equation(
     state, function_to_get_current_tree_representation_int, logger
 ):
-    # wenn start node linker komplett:
-    # rechtes kind berechne residual
-    # rechtes kind prefix rest baum
-    # neuer baum aus prefix
     if is_residual_calc_possible(state):
         last_child = state.syntax_tree.start_node.list_children[-1]
         sub_tree_prefix = state.syntax_tree.get_subtree_in_prefix_notion(

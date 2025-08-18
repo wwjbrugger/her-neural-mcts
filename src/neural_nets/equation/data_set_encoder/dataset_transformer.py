@@ -111,7 +111,7 @@ class DatasetTransformer(MeasurementEncoderDummy):
         # In-Embedding
         # Linearly embeds each of the `D` [len(input_feature_dims)] feature
         # columns to a shared embedding dimension E [model_dim_hidden].
-        # Before the embedding, each column has its own dimensionionality
+        # Before the embedding, each column has its own dimensionality
         # H_j [dim_feature_encoding], given by the encoding dimension of the
         # feature (e.g. This is given by the one-hot-encoding size for
         # categorical variables + one dimension for the mask token and two-
@@ -264,7 +264,7 @@ class DatasetTransformer(MeasurementEncoderDummy):
         #  D number features in dataset
         # N number input samples
         # H_J   number embedding of features cn be something like value, mask or power, value/power, mask be,
-        # E shared embeding dim
+        # E shared embedding dim
         X_embed = []
         for i, embed in enumerate(self.in_embedding):
             # spaltenweises embedding
