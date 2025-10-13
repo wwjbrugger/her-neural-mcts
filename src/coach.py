@@ -16,7 +16,7 @@ from collections import deque
 from abc import ABC
 
 import numpy as np
-from tqdm import trange
+from tqdm.auto import tqdm
 
 from src.HerNeuralMCTS.src.equation_modules.generate_datasets.dataset_generator import (
     DatasetGenerator,

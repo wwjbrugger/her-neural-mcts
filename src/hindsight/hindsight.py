@@ -1,5 +1,7 @@
 import random
 import numpy as np
+from tqdm.auto import tqdm
+
 from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
 from src.HerNeuralMCTS.src.game.game_history import GameHistory
 import copy
@@ -127,6 +129,7 @@ class Hindsight:
 
         :return: A list of GameHistory objects containing HER samples.
         """
+        print("Creating HER samples...")
         if self.trajectory_selection == "played":
             # use actually played episode history
             return self.create_trajectory_hindsight_samples(
@@ -145,13 +148,13 @@ class Hindsight:
                 )
             ]
             # add hindsight using constructed trajectories
-            for t in trajectories:
+            for t in tqdm(trajectories):
                 hindsight_histories.extend(
                     self.create_trajectory_hindsight_samples(trajectory=t)
                 )
         else:
             raise NotImplementedError()
-
+        print(f"Added {len(hindsight_histories)} HER samples")
         return hindsight_histories
 
     def create_trajectory_hindsight_samples(self, trajectory):
