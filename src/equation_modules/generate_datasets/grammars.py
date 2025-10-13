@@ -12,7 +12,7 @@ def get_grammars(grammar_to_use):
                 S -> 'cos' I      [0.1]
                 S -> 'log' I      [0.2]
                 I -> 'adv' [0.5] | 'rec'[0.5] 
-                Variable -> 'drop_length' [0.25]| 'y_center' [0.25]| 'avg_vel'[0.25]| 'width'[0.25] 
+                Variable -> 'drop_length' [0.34]| 'avg_vel'[0.33]| 'width'[0.33] 
                 """
 
     elif grammar_to_use == "1":
