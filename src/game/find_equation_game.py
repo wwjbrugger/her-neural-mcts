@@ -48,7 +48,8 @@ class FindEquationGame(Game):
 
         # test on a fixed set of equations & datasets
         self.reader_test = PandasPreprocessDropFriction(
-                args=args, grammar=self.grammar
+                args=args, grammar=self.grammar,
+            train_test_or_val = 'val'
             )
 
         self.iterator = self.reader.get_datasets()
@@ -65,6 +66,7 @@ class FindEquationGame(Game):
 
         observations = {
             "data_frame": batch_data["data_frame"],
+            "system": batch_data["system"]
         }
         if "action_sequence" in batch_data:
             observations["action_sequence"] = batch_data["action_sequence"]
@@ -217,11 +219,7 @@ class FindEquationGame(Game):
         return r
 
     def getHash(self, state):
-        data = np.ascontiguousarray(state.observation["data_frame"].drop(
-            labels=[self.args.system_id_column],
-            axis=1,
-            inplace = False)
-        )
+        data = np.ascontiguousarray(state.observation["data_frame"])
         hash1 = hashlib.md5(data).hexdigest()
         string_representation = (
             f"{state.syntax_tree.start_node.node_id}"

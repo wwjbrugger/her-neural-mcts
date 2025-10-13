@@ -86,9 +86,7 @@ class EquationRulePredictorSkeleton(tf.keras.Model):
         ]
 
         measurement_representation_list = [
-            observation["data_frame"].drop(
-                labels=[self.args.system_id_column],
-                axis=1, inplace = False) for observation in observations
+            observation["data_frame"] for observation in observations
         ]
         target_pis = tf_save_cast_to_float_32(
             x=target_pis, logger=self.logger, name="target_pis"

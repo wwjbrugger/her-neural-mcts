@@ -1,8 +1,11 @@
+import random
+
 import numpy as np
 
 from src.HerNeuralMCTS.src.equation_modules.preprocess_data.equation_preprocess_dummy import (
     EquationPreprocessDummy,
 )
+from src.preprocess_Xiaomei_data import get_xiaomei_datasets
 
 
 class PandasPreprocessDropFriction(EquationPreprocessDummy):
@@ -10,7 +13,7 @@ class PandasPreprocessDropFriction(EquationPreprocessDummy):
     Class to read data dynamically to transformer model
     """
 
-    def __init__(self, args, grammar):
+    def __init__(self, args, grammar, train_test_or_val="train"):
         self.grammar = grammar
 
         super().__init__(args, None, self.grammar)
@@ -23,6 +26,8 @@ class PandasPreprocessDropFriction(EquationPreprocessDummy):
             dataset_columns=self.dataset_columns,
             map_tree_representation_to_int=self.map_tree_representation_to_int,
         )
+        dict_df = get_xiaomei_datasets(args, train_test_or_val)
+        self.set_dataset(dict_df)
         self.num_production_rules = self.get_num_production_rules()
         pass
 
@@ -32,8 +37,8 @@ class PandasPreprocessDropFriction(EquationPreprocessDummy):
         )
         return num_variables
 
-    def set_dataset(self, df):
-        self.iterator.set_datasets(df=df)
+    def set_dataset(self, dict_df):
+        self.iterator.set_datasets(dict_df=dict_df)
 
     def get_datasets(self):
         # returns an iterator
@@ -63,8 +68,8 @@ class PandasIterator:
         self.num_datasets = 1
         self.map_tree_representation_to_int = map_tree_representation_to_int
 
-    def set_datasets(self, df):
-        self.df = df
+    def set_datasets(self, dict_df):
+        self.dict_df = dict_df
 
     def __str__(self):
         return "PandasIteratorDropFriction"
@@ -73,11 +78,14 @@ class PandasIterator:
         return self
 
     def __next__(self):
-        shorten_data = self.df.sample(
-            n=min(self.df.shape[0], self.args.num_rows_for_ed)
+        random_system = random.choice(list(self.dict_df.keys()))
+        random_df = self.dict_df[random_system]
+        shorten_data = random_df.sample(
+            n=min(random_df.shape[0], self.args.num_rows_for_ed)
         )
         return {
             "infix_formula": 'Unknown',
+            'system': random_system,
             "data_frame": shorten_data,
         }
 
