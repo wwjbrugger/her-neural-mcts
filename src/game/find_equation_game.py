@@ -48,9 +48,9 @@ class FindEquationGame(Game):
 
         # test on a fixed set of equations & datasets
         self.reader_test = PandasPreprocessDropFriction(
-                args=args, grammar=self.grammar,
-            train_test_or_val = 'val'
-            )
+            args=args, grammar=self.grammar,
+            train_test_or_val='val'
+        )
 
         self.iterator = self.reader.get_datasets()
         self.iterator_test = self.reader_test.get_datasets()
@@ -105,7 +105,7 @@ class FindEquationGame(Game):
         return self.action_size
 
     def getNextState(
-        self, state: GameState, action: int, **kwargs
+            self, state: GameState, action: int, **kwargs
     ) -> typing.Tuple[GameState, float]:
         next_tree = deepcopy(state.syntax_tree)
         next_tree.expand_node_with_action(
@@ -125,11 +125,11 @@ class FindEquationGame(Game):
             current_tree_representation_int
         )
         done = (
-            next_tree.complete
-            or next_tree.max_depth_reached
-            or next_tree.max_constants_reached
-            or next_tree.max_nodes_reached
-            or next_tree.invalid
+                next_tree.complete
+                or next_tree.max_depth_reached
+                or next_tree.max_constants_reached
+                or next_tree.max_nodes_reached
+                or next_tree.invalid
         )
 
         if done:
@@ -175,14 +175,19 @@ class FindEquationGame(Game):
                 complete_syntax_tree, initial_dataset = refit_all_constants(
                     finished_state=state, args=self.args
                 )
-                output = evaluate_equation(self.args, complete_syntax_tree, initial_dataset)
+                output = evaluate_equation(
+                    self.args,
+                    complete_syntax_tree,
+                    X_df=initial_dataset.loc[:, initial_dataset.columns != 'y'],
+                    Y_df=initial_dataset.loc[:, ['y']].to_numpy().ravel()
+                )
                 syntax_tree.constants_in_tree = complete_syntax_tree.constants_in_tree
 
                 state.evaluation_dict = {'train': output}
                 state.complete_discovered_equation = (
                     syntax_tree.rearrange_equation_prefix_notation()[1]
                 )
-                if not 'err_rel' in output: 
+                if not 'err_rel' in output:
                     raise NoSolutionFoundError
                 r = 1 + (- output['err_rel'] if - output['err_rel']
                                                 > self.args.minimum_reward else self.args.minimum_reward)
