@@ -245,7 +245,7 @@ class Coach(ABC):
                 # Compute the move probability vector and state value using MCTS for the current state of the environment.
                 pi, v = mcts.run_mcts(
                     state=state,
-                    num_mcts_sims=self.args.num_mcts_sims if i == 0 else 10,
+                    num_mcts_sims=self.args.num_mcts_sims ,
                     temperature=temp,
                     depth=i,
                 )
