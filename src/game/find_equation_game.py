@@ -191,6 +191,7 @@ class FindEquationGame(Game):
                     raise NoSolutionFoundError
                 r = 1 + (- output['error'] if - output['error']
                                                 > self.args.minimum_reward else self.args.minimum_reward)
+                r = r - len(syntax_tree.dict_of_nodes) * 0.001
                 if math.isfinite(r):
                     self.max_list.add(state=state, key=- output['error'])
                 else:
