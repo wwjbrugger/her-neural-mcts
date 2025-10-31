@@ -395,11 +395,14 @@ class AmEx_MCTS(ClassicMCTS):
         return mct_return
 
     def select_action_with_highest_upper_confidence_bound(self, state_hash):
-        confidence_bounds = []
-        for a in range(self.action_size):
-            ucb = self.compute_ucb(state_hash, a)
-            confidence_bounds.append(ucb)
-        confidence_bounds = np.asarray(confidence_bounds)
+        if (self.times_s_was_visited[state_hash] % 3== 2):
+            confidence_bounds = np.random.rand(self.action_size)
+        else:
+            confidence_bounds = []
+            for a in range(self.action_size):
+                ucb = self.compute_ucb(state_hash, a)
+                confidence_bounds.append(ucb)
+            confidence_bounds = np.asarray(confidence_bounds)
 
         # Get masked argmax.
         a = tie_breaking_argmax(
