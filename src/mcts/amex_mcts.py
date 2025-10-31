@@ -14,11 +14,12 @@ Notes:
 import typing
 import numpy as np
 
+from definitions import ROOT_DIR
 from src.HerNeuralMCTS.src.game.find_equation_game import FindEquationGame
 from src.HerNeuralMCTS.src.game.game import GameState
 from src.HerNeuralMCTS.src.utils.utils import tie_breaking_argmax
 from src.HerNeuralMCTS.src.mcts.classic_mcts import ClassicMCTS
-
+import matplotlib.pyplot as plt
 
 class AmEx_MCTS(ClassicMCTS):
     """
@@ -109,6 +110,41 @@ class AmEx_MCTS(ClassicMCTS):
             v = self.Qsa[(s_0_hash, tie_breaking_argmax(move_probabilities))]
 
         return move_probabilities, v
+
+    def plot_statistics(self, num_sim, s_0_hash):
+        first_state = list(self.states.keys())[0]
+        edge_s_a_was_visited = {k: v for k, v in self.times_edge_s_a_was_visited.items() if k[0] == first_state}
+        Qsa = {k: v for k, v in self.Qsa.items() if k[0] == first_state}
+        prior = {k: v[:10] for k, v in self.Ps.items() if k == first_state}
+        move_probabilities = self.calculate_move_probabilities(
+            s_0_hash, self.times_edge_s_a_was_visited
+        )
+        actions = np.arange(0, 10, 1)
+        fig, ax1 = plt.subplots()
+        fig.suptitle(self.states[first_state].observation['system'])
+        ax1.set_title(f'Epoch={self.args.current_epoch},'
+                      f' Episode={self.args.equation_in_episode},'
+                      f' Sim: {num_sim} ')
+        s0 = ax1.plot(actions, move_probabilities[:10], color='m', linestyle='--', label='Move prob.')
+        s1 = ax1.plot(actions, prior[first_state], color='blue', linestyle='--', label='Prior')
+        s2 = ax1.plot(actions, [Qsa[(first_state, a)] for a in actions], color='red', linestyle='--', label='Qsa')
+        ax1.set_xlabel('actions')
+        ax2 = ax1.twinx()
+        ax2.set_ylabel('#visits')
+        s3 = ax2.plot(actions, [edge_s_a_was_visited[(first_state, a)] for a in actions], color='green', linestyle='--', label='Visits')
+        lines = [s0[0], s1[0], s2[0], s3[0]]
+        labels = [line.get_label() for line in lines]
+        ax1.legend(lines, labels)
+        ax2.set_ylim(bottom=0)
+        save_path = (ROOT_DIR / "saved_models" / str(self.args.experiment_name) /
+                     str(self.args.seed) / 'plots' /
+                     f"epoch={self.args.current_epoch}")
+        self.game.logger.info(f"Plot saved @ {save_path}")
+        save_path.mkdir(parents=True, exist_ok=True)
+        fig.tight_layout()
+        fig.savefig(save_path /
+                    f"episode={self.args.equation_in_episode}_sim={num_sim}.png"
+                    )
 
     def update_full_exploration_to_root_node(self, state_hash):
         """
