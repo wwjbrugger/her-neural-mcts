@@ -187,9 +187,9 @@ class FindEquationGame(Game):
                 state.complete_discovered_equation = (
                     syntax_tree.rearrange_equation_prefix_notation()[1]
                 )
-                if not 'err_rel' in output:
+                if not 'error' in output:
                     raise NoSolutionFoundError
-                r = 1 + (- output['err_rel'] if - output['err_rel']
+                r = 1 + (- output['error'] if - output['error']
                                                 > self.args.minimum_reward else self.args.minimum_reward)
                 if math.isfinite(r):
                     self.max_list.add(state=state, key=- output['error'])
