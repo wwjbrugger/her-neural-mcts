@@ -85,8 +85,11 @@ class AmEx_MCTS(ClassicMCTS):
                 )
             )
         for num_sim in range(num_mcts_sims):
-            if num_sim % 1000 == 100:
+            if num_sim % 1000 == 999:
                 self.game.logger.info(f"{num_sim} simulation from {num_mcts_sims} done")
+                if depth==0:
+                    self.plot_statistics(num_sim, s_0_hash)
+
             if not_completely_explored:
                 mct_return, not_completely_explored = self._search(
                     state=state, depth=depth
