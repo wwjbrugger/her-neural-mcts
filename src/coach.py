@@ -421,6 +421,7 @@ class Coach(ABC):
             self.load_train_examples()
 
         while self.checkpoint.step < self.args.num_iterations:
+            self.args.current_epoch = int(self.checkpoint.step)
             self.logger.info(
                 f"------------------ITER"
                 f" {int(self.checkpoint.step)}----------------"
@@ -509,6 +510,7 @@ class Coach(ABC):
                         "Playing episodes" if metrics["mode"] == "train" else "Testing episodes"
                 ),
         ):
+            self.args.equation_in_episode = i
             mcts.clear_tree()
 
             episode_history = self.execute_one_game(
