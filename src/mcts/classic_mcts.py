@@ -370,13 +370,12 @@ class ClassicMCTS:
             q_value = 0
 
         if self.args.use_puct:
+            prior =   self.Ps[state_hash][a]
             # Standard PUCT formula from the AlphaZero paper
-            exploration = (
-                self.args.c1
-                * self.Ps[state_hash][a]
-                * np.sqrt(self.times_s_was_visited[state_hash] + 1)
-                / (1 + times_s_a_visited)
-            )
+            exploration = (np.sqrt(self.times_s_was_visited[state_hash] + 1)
+                           / (1 + times_s_a_visited))
+            return q_value + self.args.c2 * prior + self.args.c1 * exploration
+
         else:
             # Standard UCT/UCB1 formula
             if times_s_a_visited == 0:
@@ -386,10 +385,10 @@ class ClassicMCTS:
                 denominator = 1.0
             else:
                 denominator = np.log(self.times_s_was_visited[state_hash])
+            exploration =  np.sqrt(denominator / times_s_a_visited)
+            return q_value  + self.args.c1 * exploration
 
-            exploration = self.args.c1 * np.sqrt(denominator / times_s_a_visited)
 
-        return q_value + exploration
 
     def rollout_gym(self, state):
         env = copy.deepcopy(state.env)
