@@ -42,6 +42,7 @@ class ClassicMCTS:
         self.action_size = game.getActionSize()
 
         self.Qsa = {}  # stores Q values for s, a
+        self.initial_Qsa = {}
         self.Ssa = {}  # stores state transitions for s, a
         self.Rsa = {}  # stores R values for s, a
         self.times_edge_s_a_was_visited = {}  # stores visit counts of edges
@@ -149,6 +150,7 @@ class ClassicMCTS:
     def clear_tree(self) -> None:
         """Clear all statistics stored in the current search tree"""
         self.Qsa = {}  # stores Q values for s,a (as defined in the paper)
+        self.initial_Qsa ={}
         self.Ssa = {}  # stores state transitions for s, a
         self.Rsa = {}  # stores R values for s, a
         self.times_edge_s_a_was_visited = {}  # stores visit counts of edges

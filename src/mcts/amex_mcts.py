@@ -118,6 +118,7 @@ class AmEx_MCTS(ClassicMCTS):
         first_state = list(self.states.keys())[0]
         edge_s_a_was_visited = {k: v for k, v in self.times_edge_s_a_was_visited.items() if k[0] == first_state}
         Qsa = {k: v for k, v in self.Qsa.items() if k[0] == first_state}
+        initial_Qsa = {k: v for k, v in self.initial_Qsa.items() if k[0] == first_state}
         prior = {k: v[:10] for k, v in self.Ps.items() if k == first_state}
         move_probabilities = self.calculate_move_probabilities(
             s_0_hash, self.times_edge_s_a_was_visited
@@ -131,11 +132,13 @@ class AmEx_MCTS(ClassicMCTS):
         s0 = ax1.plot(actions, move_probabilities[:10], color='m', linestyle='--', label='Move prob.')
         s1 = ax1.plot(actions, prior[first_state], color='blue', linestyle='--', label='Prior')
         s2 = ax1.plot(actions, [Qsa[(first_state, a)] for a in actions], color='red', linestyle='--', label='Qsa')
+        s3 = ax1.plot(actions, [initial_Qsa[(first_state, a)] if (first_state, a) in initial_Qsa else np.nan for a in actions ],
+                      color='lightblue', linestyle='dashdot', label='initial_Qsa')
         ax1.set_xlabel('actions')
         ax2 = ax1.twinx()
         ax2.set_ylabel('#visits')
-        s3 = ax2.plot(actions, [edge_s_a_was_visited[(first_state, a)] for a in actions], color='green', linestyle='--', label='Visits')
-        lines = [s0[0], s1[0], s2[0], s3[0]]
+        s4 = ax2.plot(actions, [edge_s_a_was_visited[(first_state, a)] for a in actions], color='green', linestyle='--', label='Visits')
+        lines = [s0[0], s1[0], s2[0], s3[0], s4[0]]
         labels = [line.get_label() for line in lines]
         ax1.legend(lines, labels)
         ax2.set_ylim(bottom=0)
@@ -342,6 +345,7 @@ class AmEx_MCTS(ClassicMCTS):
             # Build network input for inference.
             prior, value = self.get_prior_and_value(state=next_state)
             self.Ps[next_state_hash] = prior
+            self.initial_Qsa[(state_hash, a)] = value
             self.valid_moves_for_s[next_state_hash] = self.game.getLegalMoves(
                 state=next_state
             ).astype(bool)
